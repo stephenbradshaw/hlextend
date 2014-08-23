@@ -40,14 +40,15 @@ Given an existing sha1 hash value '52e98441017043eee154a6d1af98c5e0efab055c',
 known data of 'hello', an unknown secret of length 10 and data you wish
 to append of 'file', you would do the following to perform the attack:
 
->>> import hlextend
->>> sha = hlextend.new('sha1')
->>> print sha.extend('file', 'hello', 10, '52e98441017043eee154a6d1af98c5e0efab055c')
-'hello\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
-\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
-\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00xfile'
->>> print sha.hexdigest()
-c60fa7de0860d4048a3bfb36b70299a95e6587c9
+	>>> import hlextend
+	>>> sha = hlextend.new('sha1')
+	>>> print sha.extend('file', 'hello', 10, '52e98441017043eee154a6d1af98c5e0efab055c')
+	'hello\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
+	\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
+	\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00xfile'
+	>>> print sha.hexdigest()
+	c60fa7de0860d4048a3bfb36b70299a95e6587c9
+
 
 The unknown secret (of length 10), that when hashed appended with 'hello' produces
 a SHA1 hash of '52e98441017043eee154a6d1af98c5e0efab055c', will then produce 
