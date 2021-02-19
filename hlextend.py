@@ -106,7 +106,7 @@ class Hash(object):
         message = self.__hashBinaryPad(message, length)
         
 
-        for a in xrange(len(message) // self._b2):
+        for a in range(len(message) // self._b2):
             self._transform(message[a * self._b2:a * self._b2 + self._b2])
 
 
@@ -127,7 +127,7 @@ class Hash(object):
 
         message = self.__hashBinaryPad(message, extendLength)        
 
-        for i in xrange(len(message) // self._b2):
+        for i in range(len(message) // self._b2):
             self._transform(message[i * self._b2:i * self._b2 + self._b2])
 
         return self.__hashGetPadData(secretLength, knownData, appendData, raw=raw)
@@ -151,7 +151,7 @@ class Hash(object):
 
     def __setStartingHash(self, startHash):
         c = 0
-        hashVals = [ int(startHash[a:a+self._b1],base=16) for a in range(0,len(startHash), self._b1) ]
+        hashVals = [ int(startHash[a:a+int(self._b1)],base=16) for a in range(0,len(startHash), int(self._b1)) ]
         for hv in [ a for a in dir(self) if match('^_h\d+$', a) ]:
             self.__setattr__(hv, hashVals[c])        
             c+=1
@@ -176,7 +176,7 @@ class Hash(object):
 
     def __binToByte(self, binary):
         '''Convert a binary string to a byte string'''
-        return ''.join([ chr(int(binary[a:a+8],base=2)) for a in xrange(0,len(binary),8) ])
+        return ''.join([ chr(int(binary[a:a+8],base=2)) for a in range(0,len(binary),8) ])
 
 
 
@@ -194,7 +194,7 @@ class Hash(object):
         padData = ''.join(bin(ord(i))[2:].rjust(8, "0") for i in knownData) + "1"
         padData += "0" * (((self._blockSize*7) - (len(padData)+(secretLength*8)) % self._b2) % self._b2) + originalHashLength 
         if not raw:
-            return ''.join([ self.__byter(int(padData[a:a+8],base=2)) for a in xrange(0,len(padData),8) ]) + appendData
+            return ''.join([ self.__byter(int(padData[a:a+8],base=2)) for a in range(0,len(padData),8) ]) + appendData
         else:
             return self.__binToByte(padData) + appendData    
 
@@ -221,10 +221,10 @@ class SHA1 (Hash):
         lrot = lambda x, n: (x << n) | (x >> (32 - n))
         w = []
 
-        for j in xrange(len(chunk) // 32):
+        for j in range(len(chunk) // 32):
             w.append(int(chunk[j * 32:j * 32 + 32], 2))
 
-        for i in xrange(16, 80):
+        for i in range(16, 80):
             w.append(lrot(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1)
                 & 0xffffffff)
 
@@ -234,7 +234,7 @@ class SHA1 (Hash):
         d = self._h3
         e = self._h4
 
-        for i in xrange(80):
+        for i in range(80):
 
             if i <= i <= 19:
                 f, k = d ^ (b & (c ^ d)), 0x5a827999
@@ -287,10 +287,10 @@ class SHA256 (Hash):
             0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
             0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2]
 
-        for j in xrange(len(chunk) // 32):
+        for j in range(len(chunk) // 32):
             w.append(int(chunk[j * 32:j * 32 + 32], 2))
 
-        for i in xrange(16, 64):
+        for i in range(16, 64):
             s0 = rrot(w[i - 15], 7) ^ rrot(w[i - 15], 18) ^ (w[i - 15] >> 3)
             s1 = rrot(w[i - 2], 17) ^ rrot(w[i - 2], 19) ^ (w[i - 2] >> 10)
             w.append((w[i - 16] + s0 + w[i - 7] + s1) & 0xffffffff)
@@ -304,7 +304,7 @@ class SHA256 (Hash):
         g = self._h6
         h = self._h7
 
-        for i in xrange(64):
+        for i in range(64):
             s0 = rrot(a, 2) ^ rrot(a, 13) ^ rrot(a, 22)
             maj = (a & b) ^ (a & c) ^ (b & c)
             t2 = s0 + maj
@@ -390,10 +390,10 @@ class SHA512 (Hash):
             0x4cc5d4becb3e42b6, 0x597f299cfc657e2a,
             0x5fcb6fab3ad6faec, 0x6c44198c4a475817]
 
-        for j in xrange(len(chunk) // 64):
+        for j in range(len(chunk) // 64):
             w.append(int(chunk[j * 64:j * 64 + 64], 2))
 
-        for i in xrange(16, 80):
+        for i in range(16, 80):
             s0 = rrot(w[i - 15], 1) ^ rrot(w[i - 15], 8) ^ (w[i - 15] >> 7)
             s1 = rrot(w[i - 2], 19) ^ rrot(w[i - 2], 61) ^ (w[i - 2] >> 6)
             w.append((w[i - 16] + s0 + w[i - 7] + s1) & 0xffffffffffffffff)
@@ -407,7 +407,7 @@ class SHA512 (Hash):
         g = self._h6
         h = self._h7
 
-        for i in xrange(80):
+        for i in range(80):
             s0 = rrot(a, 28) ^ rrot(a, 34) ^ rrot(a, 39)
             maj = (a & b) ^ (a & c) ^ (b & c)
             t2 = s0 + maj
