@@ -23,28 +23,43 @@
 
 '''
     Pure Python Hash Length Extension module.
+
     Currently supports SHA1, SHA256 and SHA512, more algorithms will
     be added in the future.
+
+
     Create a hash by calling one of the named constuctor functions:
     sha1(), sha256(), and sha512(), or by calling new(algorithm).
+
     The hash objects have the following methods:
+
     hash(message):      
+
         Feeds data into the hash function using the normal interface.
+
     extend(appendData, knownData, secretLength, startHash, raw=False):
+
         Performs a hash length extension attack.  Returns the string to
         use when appending data.
+
     hexdigest():        
+
         Returns a hexlified version of the hash output.
+
+
     Assume you have a hash generated from an unknown secret value concatenated with
     a known value, and you want to be able to produce a valid hash after appending 
     additional data to the known value.
+
     If the hash algorithm used is one of the vulnerable functions implemented in
     this module, is is possible to achieve this without knowing the secret value
     as long as you know (or can guess, perhaps by brute force) the length of that
     secret value.  This is called a hash length extension attack. 
+
     Given an existing sha1 hash value '52e98441017043eee154a6d1af98c5e0efab055c',
     known data of 'hello', an unknown secret of length 10 and data you wish
     to append of 'file', you would do the following to perform the attack:
+    
     >>> import hlextend
     >>> sha = hlextend.new('sha1')
     >>> print sha.extend('file', 'hello', 10, '52e98441017043eee154a6d1af98c5e0efab055c')
@@ -53,14 +68,15 @@
     \\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00xfile'
     >>> print sha.hexdigest()
     c60fa7de0860d4048a3bfb36b70299a95e6587c9
+
    The unknown secret (of length 10), that when hashed appended with 'hello' produces
    a SHA1 hash of '52e98441017043eee154a6d1af98c5e0efab055c', will then produce 
    a SHA1 hash of 'c60fa7de0860d4048a3bfb36b70299a95e6587c9' when appended with the output 
    from the extend function above.
+   
    If you are not sure of the exact length of the secret value, simply try the above
    multiple times specifying different values for the length to brute force.
 '''
-
 
 
 from re import match
@@ -71,73 +87,66 @@ from typing import Union
 __version__ = "0.1"
 
 
-
 class Hash(object):
     '''Parent class for hash functions'''
-
 
     def hash(self, message):
         '''Normal input for data into hash function'''
 
         length = bin(len(message) * 8)[2:].rjust(self._blockSize, "0")
-        
-        while len(message) > self._blockSize:            
-            self._transform(''.join([bin(ord(a))[2:].rjust(8, "0") for a in message[:self._blockSize]]))
+
+        while len(message) > self._blockSize:
+            self._transform(''.join([bin(ord(a))[2:].rjust(8, "0")
+                            for a in message[:self._blockSize]]))
             message = message[self._blockSize:]
 
         message = self.__hashBinaryPad(message, length)
-        
 
         for a in range(len(message) // self._b2):
             self._transform(message[a * self._b2:a * self._b2 + self._b2])
-
-
 
     def extend(self, appendData, knownData, secretLength, startHash, raw=False):
         '''Hash length extension input for data into hash function'''
 
         self.__checkInput(secretLength, startHash)
-        self.__setStartingHash(startHash)        
-        
-        extendLength = self.__hashGetExtendLength(secretLength, knownData, appendData)        
+        self.__setStartingHash(startHash)
+
+        extendLength = self.__hashGetExtendLength(
+            secretLength, knownData, appendData)
 
         message = appendData
 
         while len(message) > self._blockSize:
-            self._transform(''.join([bin(ord(a))[2:].rjust(8, "0") for a in message[:self._blockSize]]))
+            self._transform(''.join([bin(ord(a))[2:].rjust(8, "0")
+                            for a in message[:self._blockSize]]))
             message = message[self._blockSize:]
 
-        message = self.__hashBinaryPad(message, extendLength)        
+        message = self.__hashBinaryPad(message, extendLength)
 
         for i in range(len(message) // self._b2):
             self._transform(message[i * self._b2:i * self._b2 + self._b2])
 
         return self.__hashGetPadData(secretLength, knownData, appendData, raw=raw)
 
-
     def hexdigest(self):
         '''Outputs hash data in hexlified format'''
-        return ''.join( [ (('%0' + str(self._b1) + 'x') % (a)) for a in self.__digest()])
-
+        return ''.join([(('%0' + str(self._b1) + 'x') % (a)) for a in self.__digest()])
 
     def __init__(self):
         # pre calculate some values that get used a lot
         self._b1 = self._blockSize/8
         self._b2 = self._blockSize*8
 
-
-
     def __digest(self):
         return [self.__getattribute__(a) for a in dir(self) if match('^_h\d+$', a)]
 
-
     def __setStartingHash(self, startHash):
         c = 0
-        hashVals = [ int(startHash[a:a+int(self._b1)],base=16) for a in range(0,len(startHash), int(self._b1)) ]
-        for hv in [ a for a in dir(self) if match('^_h\d+$', a) ]:
-            self.__setattr__(hv, hashVals[c])        
-            c+=1
-
+        hashVals = [int(startHash[a:a+int(self._b1)], base=16)
+                    for a in range(0, len(startHash), int(self._b1))]
+        for hv in [a for a in dir(self) if match('^_h\d+$', a)]:
+            self.__setattr__(hv, hashVals[c])
+            c += 1
 
     def __checkInput(self, secretLength, startHash):
         if not isinstance(secretLength, int):
@@ -145,49 +154,47 @@ class Hash(object):
         if secretLength < 1:
             raise ValueError('secretLength must be grater than 0')
         if not match('^[a-fA-F0-9]{' + str(len(self.hexdigest())) + '}$', startHash):
-            raise ValueError('startHash must be a string of length ' + str(len(self.hexdigest())) + ' in hexlified format')
-        
+            raise ValueError('startHash must be a string of length ' +
+                             str(len(self.hexdigest())) + ' in hexlified format')
 
     def __byter(self, byteVal):
         '''Helper function to return usable values for hash extension append data'''
         if byteVal < 0x20 or byteVal > 0x7e:
-            return '\\x%02x' %(byteVal)
-        else:    
+            return '\\x%02x' % (byteVal)
+        else:
             return chr(byteVal)
-
 
     def __binToByte(self, binary):
         '''Convert a binary string to a byte string'''
-        return ''.join([ chr(int(binary[a:a+8],base=2)) for a in range(0,len(binary),8) ])
-
-
+        return ''.join([chr(int(binary[a:a+8], base=2)) for a in range(0, len(binary), 8)])
 
     def __hashGetExtendLength(self, secretLength, knownData, appendData):
         '''Length function for hash length extension attacks'''
         # binary length (secretLength + len(knownData) + size of binarysize+1) rounded to a multiple of blockSize + length of appended data
-        originalHashLength = int(ceil((secretLength+len(knownData)+self._b1+1)/float(self._blockSize)) * self._blockSize) 
-        newHashLength = originalHashLength + len(appendData) 
+        originalHashLength = int(ceil(
+            (secretLength+len(knownData)+self._b1+1)/float(self._blockSize)) * self._blockSize)
+        newHashLength = originalHashLength + len(appendData)
         return bin(newHashLength * 8)[2:].rjust(self._blockSize, "0")
 
-
     def __hashGetPadData(self, secretLength, knownData, appendData, raw=False):
-        '''Return append value for hash extension attack'''    
-        originalHashLength = bin((secretLength+len(knownData)) * 8)[2:].rjust(self._blockSize, "0")    
-        padData = ''.join(bin(ord(i))[2:].rjust(8, "0") for i in knownData) + "1"
-        padData += "0" * (((self._blockSize*7) - (len(padData)+(secretLength*8)) % self._b2) % self._b2) + originalHashLength 
+        '''Return append value for hash extension attack'''
+        originalHashLength = bin(
+            (secretLength+len(knownData)) * 8)[2:].rjust(self._blockSize, "0")
+        padData = ''.join(bin(ord(i))[2:].rjust(8, "0")
+                          for i in knownData) + "1"
+        padData += "0" * (((self._blockSize*7) - (len(padData)+(secretLength*8)) %
+                          self._b2) % self._b2) + originalHashLength
         if not raw:
-            return ''.join([ self.__byter(int(padData[a:a+8],base=2)) for a in range(0,len(padData),8) ]) + appendData
+            return ''.join([self.__byter(int(padData[a:a+8], base=2)) for a in range(0, len(padData), 8)]) + appendData
         else:
-            return self.__binToByte(padData) + appendData    
-
+            return self.__binToByte(padData) + appendData
 
     def __hashBinaryPad(self, message, length):
         '''Pads the final blockSize block with \x80, zeros, and the length, converts to binary'''
-        message = ''.join(bin(ord(i))[2:].rjust(8, "0") for i in message) + "1"    
-        message += "0" * (((self._blockSize*7) - len(message) % self._b2) % self._b2) + length
+        message = ''.join(bin(ord(i))[2:].rjust(8, "0") for i in message) + "1"
+        message += "0" * (((self._blockSize*7) - len(message) %
+                          self._b2) % self._b2) + length
         return message
-
-
 
 
 class SHA1 (Hash):
@@ -197,10 +204,9 @@ class SHA1 (Hash):
 
     _blockSize = 64
 
-
     def _transform(self, chunk):
 
-        lrot = lambda x, n: (x << n) | (x >> (32 - n))
+        def lrot(x, n): return (x << n) | (x >> (32 - n))
         w = []
 
         for j in range(len(chunk) // 32):
@@ -208,7 +214,7 @@ class SHA1 (Hash):
 
         for i in range(16, 80):
             w.append(lrot(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1)
-                & 0xffffffff)
+                     & 0xffffffff)
 
         a = self._h0
         b = self._h1
@@ -237,7 +243,6 @@ class SHA1 (Hash):
         self._h4 = (self._h4 + e) & 0xffffffff
 
 
-
 class SHA256 (Hash):
 
     _h0, _h1, _h2, _h3, _h4, _h5, _h6, _h7 = (
@@ -246,9 +251,8 @@ class SHA256 (Hash):
 
     _blockSize = 64
 
-
     def _transform(self, chunk):
-        rrot = lambda x, n: (x >> n) | (x << (32 - n))
+        def rrot(x, n): return (x >> n) | (x << (32 - n))
         w = []
 
         k = [
@@ -313,8 +317,6 @@ class SHA256 (Hash):
         self._h7 = (self._h7 + h) & 0xffffffff
 
 
-
-
 class SHA512 (Hash):
 
     _h0, _h1, _h2, _h3, _h4, _h5, _h6, _h7 = (
@@ -324,10 +326,9 @@ class SHA512 (Hash):
 
     _blockSize = 128
 
-
     def _transform(self, chunk):
 
-        rrot = lambda x, n: (x >> n) | (x << (64 - n))
+        def rrot(x, n): return (x >> n) | (x << (64 - n))
         w = []
 
         k = [
@@ -416,9 +417,6 @@ class SHA512 (Hash):
         self._h7 = (self._h7 + h) & 0xffffffffffffffff
 
 
-
-
-
 def new(algorithm) -> Union[SHA1, SHA256, SHA512]:
     obj = {
         'sha1': SHA1,
@@ -428,11 +426,9 @@ def new(algorithm) -> Union[SHA1, SHA256, SHA512]:
     return obj
 
 
-
 def sha1():
     ''' Returns a new sha1 hash object '''
     return new('sha1')
-
 
 
 def sha256():
@@ -440,11 +436,9 @@ def sha256():
     return new('sha256', )
 
 
-
 def sha512():
     ''' Returns a new sha512 hash object '''
     return new('sha512', )
-
 
 
 __all__ = ('sha1', 'sha256', 'sha512')
