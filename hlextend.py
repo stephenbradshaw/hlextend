@@ -107,8 +107,6 @@ class Hash(object):
 
     def extend(self, appendData, knownData, secretLength, startHash, raw=False):
         '''Hash length extension input for data into hash function'''
-        # inconsistency here
-
         self.__checkInput(secretLength, startHash)
         self.__setStartingHash(startHash)
 
@@ -122,12 +120,11 @@ class Hash(object):
                             for a in message[:self._blockSize]]))
             message = message[self._blockSize:]
 
-        message = self.__hashBinaryPad(message, extendLength)           # fine?
+        message = self.__hashBinaryPad(message, extendLength)
 
         for i in range(len(message) // self._b2):
             self._transform(message[i * self._b2:i * self._b2 + self._b2])
 
-        # need to return bytes
         return self.__hashGetPadData(secretLength, knownData, appendData, raw=raw)
 
     def hexdigest(self):
