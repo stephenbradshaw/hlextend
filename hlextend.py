@@ -37,9 +37,9 @@
 
         Feeds data into the hash function using the normal interface.
 
-    extend(appendData, knownData, secretLength, startHash, raw=False):
+    extend(appendData, knownData, secretLength, startHash):
 
-        Performs a hash length extension attack.  Returns the string to
+        Performs a hash length extension attack.  Returns the bytestring to
         use when appending data.
 
     hexdigest():        
@@ -105,7 +105,7 @@ class Hash(object):
         for a in range(len(message) // self._b2):
             self._transform(message[a * self._b2:a * self._b2 + self._b2])
 
-    def extend(self, appendData, knownData, secretLength, startHash, raw=False):
+    def extend(self, appendData, knownData, secretLength, startHash):
         '''Hash length extension input for data into hash function'''
         self.__checkInput(secretLength, startHash)
         self.__setStartingHash(startHash)
@@ -125,7 +125,7 @@ class Hash(object):
         for i in range(len(message) // self._b2):
             self._transform(message[i * self._b2:i * self._b2 + self._b2])
 
-        return self.__hashGetPadData(secretLength, knownData, appendData, raw=raw)
+        return self.__hashGetPadData(secretLength, knownData, appendData)
 
     def hexdigest(self):
         '''Outputs hash data in hexlified format'''
@@ -174,7 +174,7 @@ class Hash(object):
         newHashLength = originalHashLength + len(appendData)
         return bin(newHashLength * 8)[2:].rjust(self._blockSize, "0")
 
-    def __hashGetPadData(self, secretLength, knownData, appendData, raw=False):
+    def __hashGetPadData(self, secretLength, knownData, appendData):
         '''Return append value for hash extension attack'''
         originalHashLength = bin(
             (secretLength+len(knownData)) * 8)[2:].rjust(self._blockSize, "0")
@@ -183,10 +183,7 @@ class Hash(object):
         padData += "0" * (((self._blockSize*7) - (len(padData)+(secretLength*8)) %
                           self._b2) % self._b2) + originalHashLength
         
-        if not raw:
-            return ''.join([self.__byter(int(padData[a:a+8], base=2)) for a in range(0, len(padData), 8)]) + appendData
-        else:
-            return self.__binToByte(padData) + appendData
+        return self.__binToByte(padData) + appendData
 
     def __hashBinaryPad(self, message, length):
         '''Pads the final blockSize block with \x80, zeros, and the length, converts to binary'''

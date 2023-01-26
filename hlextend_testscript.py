@@ -82,7 +82,7 @@ for alg in algorithms:
 				startHash = sh.hexdigest()
     
 				s = hlextend.new(alg)
-				appendVal = s.extend(append, known, secLen, startHash, raw=True)			
+				appendVal = s.extend(append, known, secLen, startHash)
 				appendVal1 = ''.join([byter(a) for a in appendVal])
 				appendHash = s.hexdigest()			
 				sh.update(appendVal.replace(known, b''))
