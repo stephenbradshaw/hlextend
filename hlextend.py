@@ -186,19 +186,13 @@ class Hash(object):
         padData += "0" * (((self._blockSize*7) - (len(padData)+(secretLength*8)) %
                           self._b2) % self._b2) + originalHashLength
         
-        # print(padData)          # same
-        
-        
         if not raw:
-            # have to return bytes
             return ''.join([self.__byter(int(padData[a:a+8], base=2)) for a in range(0, len(padData), 8)]) + appendData
         else:
-            ## THE C2 COMES FROM HERE SOMEWHERE
             return self.__binToByte(padData) + appendData
 
     def __hashBinaryPad(self, message, length):
         '''Pads the final blockSize block with \x80, zeros, and the length, converts to binary'''
-        # this is issue
         out_msg = ''
         
         for i in message:
