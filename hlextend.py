@@ -96,7 +96,7 @@ class Hash(object):
         length = bin(len(message) * 8)[2:].rjust(self._blockSize, "0")
 
         while len(message) > self._blockSize:
-            self._transform(''.join([bin(ord(a))[2:].rjust(8, "0")
+            self._transform(''.join([bin(a)[2:].rjust(8, "0")
                             for a in message[:self._blockSize]]))
             message = message[self._blockSize:]
 
@@ -117,7 +117,7 @@ class Hash(object):
         message = appendData
 
         while len(message) > self._blockSize:
-            self._transform(''.join([bin(ord(a))[2:].rjust(8, "0")
+            self._transform(''.join([bin(a)[2:].rjust(8, "0")
                             for a in message[:self._blockSize]]))
             message = message[self._blockSize:]
 
@@ -126,6 +126,7 @@ class Hash(object):
         for i in range(len(message) // self._b2):
             self._transform(message[i * self._b2:i * self._b2 + self._b2])
 
+        # need to return bytes
         return self.__hashGetPadData(secretLength, knownData, appendData, raw=raw)
 
     def hexdigest(self):
@@ -164,9 +165,9 @@ class Hash(object):
         else:
             return chr(byteVal)
 
-    def __binToByte(self, binary):
+    def __binToByte(self, binary) -> bytearray:
         '''Convert a binary string to a byte string'''
-        return ''.join([chr(int(binary[a:a+8], base=2)) for a in range(0, len(binary), 8)])
+        return ''.join([chr(int(binary[a:a+8], base=2)) for a in range(0, len(binary), 8)]).encode()
 
     def __hashGetExtendLength(self, secretLength, knownData, appendData):
         '''Length function for hash length extension attacks'''
@@ -180,28 +181,33 @@ class Hash(object):
         '''Return append value for hash extension attack'''
         originalHashLength = bin(
             (secretLength+len(knownData)) * 8)[2:].rjust(self._blockSize, "0")
-        padData = ''.join(bin(ord(i))[2:].rjust(8, "0")
+        padData = ''.join(bin(i)[2:].rjust(8, "0")
                           for i in knownData) + "1"
         padData += "0" * (((self._blockSize*7) - (len(padData)+(secretLength*8)) %
                           self._b2) % self._b2) + originalHashLength
         if not raw:
+            # have to return bytes
             return ''.join([self.__byter(int(padData[a:a+8], base=2)) for a in range(0, len(padData), 8)]) + appendData
         else:
             return self.__binToByte(padData) + appendData
 
     def __hashBinaryPad(self, message, length):
         '''Pads the final blockSize block with \x80, zeros, and the length, converts to binary'''
-        message = ''.join(bin(ord(i))[2:].rjust(8, "0") for i in message) + "1"
-        message += "0" * (((self._blockSize*7) - len(message) %
-                          self._b2) % self._b2) + length
-        return message
+        # this is issue
+        out_msg = ''
+        
+        for i in message:
+            out_msg += bin(i)[2:].rjust(8, "0")
+        
+        out_msg += "1"
+        out_msg += "0" * (((self._blockSize*7) - len(out_msg) % self._b2) % self._b2) + length
+        
+        return out_msg
 
 
 class SHA1 (Hash):
 
-    _h0, _h1, _h2, _h3, _h4, = (
-        0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0)
-
+    _h0, _h1, _h2, _h3, _h4, = 0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0
     _blockSize = 64
 
     def _transform(self, chunk):
