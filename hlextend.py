@@ -62,10 +62,8 @@
     
     >>> import hlextend
     >>> sha = hlextend.new('sha1')
-    >>> print sha.extend('file', 'hello', 10, '52e98441017043eee154a6d1af98c5e0efab055c')
-    'hello\\x80\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00
-    \\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00
-    \\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00xfile'
+    >>> print sha.extend(b'file', b'hello', 10, '52e98441017043eee154a6d1af98c5e0efab055c')
+    b'hello\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00xfile'
     >>> print sha.hexdigest()
     c60fa7de0860d4048a3bfb36b70299a95e6587c9
 
@@ -84,7 +82,7 @@ from math import ceil
 from typing import Union
 
 
-__version__ = "0.1"
+__version__ = "0.2"
 
 
 class Hash(object):

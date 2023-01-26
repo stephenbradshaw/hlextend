@@ -16,9 +16,9 @@ The hash objects have the following methods:
 
 	    Feeds data into the hash function using the normal interface.
 
-	extend(appendData, knownData, secretLength, startHash, raw=False):
+	extend(appendData, knownData, secretLength, startHash):
 
-	    Performs a hash length extension attack.  Returns the string to
+	    Performs a hash length extension attack.  Returns the bytestring to
 	    use when appending data.
 
 	hexdigest():        
@@ -42,11 +42,9 @@ to append of 'file', you would do the following to perform the attack:
 
 	>>> import hlextend
 	>>> sha = hlextend.new('sha1')
-	>>> print sha.extend('file', 'hello', 10, '52e98441017043eee154a6d1af98c5e0efab055c')
-	'hello\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
-	\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
-	\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00xfile'
-	>>> print sha.hexdigest()
+	>>> print(sha.extend(b'file', b'hello', 10, '52e98441017043eee154a6d1af98c5e0efab055c'))
+	b'hello\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00xfile'
+	>>> print(sha.hexdigest())
 	c60fa7de0860d4048a3bfb36b70299a95e6587c9
 
 
