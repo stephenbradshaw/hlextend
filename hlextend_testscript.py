@@ -68,15 +68,19 @@ for alg in algorithms:
 # various checks of the hash length extension functionality
 for alg in algorithms:
 	print('Testing extension function for ' + alg)
+ 
 	for secLen in range(10, 130, 20):
 		secret = b'B' * secLen
+  
 		for knownLen in range(60, 130, 1):
 			known = b'A' * knownLen
-			for appendLen in range(10,50, 10):
+   
+			for appendLen in range(10, 50, 10):
 				append = b'CCC' * appendLen
 				sh = hashlib.new(alg)
-				sh.update(secret+known)
+				sh.update(secret + known)
 				startHash = sh.hexdigest()
+    
 				s = hlextend.new(alg)
 				appendVal = s.extend(append, known, secLen, startHash, raw=True)			
 				appendVal1 = ''.join([byter(a) for a in appendVal])
@@ -84,7 +88,7 @@ for alg in algorithms:
 				sh.update(appendVal.replace(known, b''))
 				newHash = sh.hexdigest()
     
-				if not appendHash == newHash:
+				if appendHash != newHash:
 					gh = hlextend.new(alg)
 					gh.hash(secret+appendVal)
 					print('Algorithm: ' + alg)

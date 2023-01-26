@@ -107,6 +107,7 @@ class Hash(object):
 
     def extend(self, appendData, knownData, secretLength, startHash, raw=False):
         '''Hash length extension input for data into hash function'''
+        # inconsistency here
 
         self.__checkInput(secretLength, startHash)
         self.__setStartingHash(startHash)
@@ -121,7 +122,7 @@ class Hash(object):
                             for a in message[:self._blockSize]]))
             message = message[self._blockSize:]
 
-        message = self.__hashBinaryPad(message, extendLength)
+        message = self.__hashBinaryPad(message, extendLength)           # fine?
 
         for i in range(len(message) // self._b2):
             self._transform(message[i * self._b2:i * self._b2 + self._b2])
@@ -166,8 +167,7 @@ class Hash(object):
             return chr(byteVal)
 
     def __binToByte(self, binary) -> bytearray:
-        '''Convert a binary string to a byte string'''
-        return ''.join([chr(int(binary[a:a+8], base=2)) for a in range(0, len(binary), 8)]).encode()
+        return int(binary, 2).to_bytes(len(binary) // 8, byteorder='big')
 
     def __hashGetExtendLength(self, secretLength, knownData, appendData):
         '''Length function for hash length extension attacks'''
@@ -185,10 +185,15 @@ class Hash(object):
                           for i in knownData) + "1"
         padData += "0" * (((self._blockSize*7) - (len(padData)+(secretLength*8)) %
                           self._b2) % self._b2) + originalHashLength
+        
+        # print(padData)          # same
+        
+        
         if not raw:
             # have to return bytes
             return ''.join([self.__byter(int(padData[a:a+8], base=2)) for a in range(0, len(padData), 8)]) + appendData
         else:
+            ## THE C2 COMES FROM HERE SOMEWHERE
             return self.__binToByte(padData) + appendData
 
     def __hashBinaryPad(self, message, length):
